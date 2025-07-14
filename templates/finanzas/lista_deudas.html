@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Deudas - Finansas{% endblock %}
+{% block page_title %}Mis Deudas{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'finanzas:nueva_deuda' %}" class="btn btn-primary">
+    <i class="fas fa-plus me-1"></i>
+    Nueva Deuda
+</a>
+{% endblock %}
+
+{% block content %}
+{% if deudas %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-credit-card me-2"></i>
+                Lista de Deudas
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Saldo Actual</th>
+                            <th>Pago Mensual</th>
+                            <th>Tasa de Interés</th>
+                            <th>Fecha Inicio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deuda in deudas %}
+                        <tr>
+                            <td>
+                                <strong>{{ deuda.nombre }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ deuda.get_tipo_display }}</span>
+                            </td>
+                            <td>
+                                <span class="text-danger fw-bold">${{ deuda.saldo_actual|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold">${{ deuda.pago_mensual|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ deuda.tasa_interes }}%</span>
+                            </td>
+                            <td>
+                                <small>{{ deuda.fecha_inicio|date:"d/m/Y" }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'finanzas:editar_deuda' deuda.pk %}" 
+                                       class="btn btn-outline-primary" 
+                                       title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-outline-danger" 
+                                            title="Eliminar"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal{{ deuda.pk }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Modal de confirmación de eliminación -->
+                        <div class="modal fade" id="deleteModal{{ deuda.pk }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirmar Eliminación</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>¿Estás seguro de que quieres eliminar la deuda <strong>"{{ deuda.nombre }}"</strong>?</p>
+                                        <p class="text-muted small">Esta acción no se puede deshacer.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <form method="post" action="{% url 'finanzas:eliminar_deuda' deuda.pk %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Resumen -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Total de Deudas</h6>
+                            <h4 class="text-primary">{{ deudas|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Saldo Total</h6>
+                            <h4 class="text-danger">
+                                ${{ deudas|length|add:"0"|floatformat:0 }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Pago Mensual Total</h6>
+                            <h4 class="text-warning">
+                                ${{ deudas|length|add:"0"|floatformat:0 }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                    <h4>No hay deudas registradas</h4>
+                    <p class="text-muted">Comienza agregando tus deudas para tener un mejor control de tu situación financiera.</p>
+                    <a href="{% url 'finanzas:nueva_deuda' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>
+                        Agregar Primera Deuda
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %} 

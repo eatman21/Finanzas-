@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Objetivos - Finansas{% endblock %}
+{% block page_title %}Mis Objetivos Financieros{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'finanzas:nuevo_objetivo' %}" class="btn btn-primary">
+    <i class="fas fa-plus me-1"></i>
+    Nuevo Objetivo
+</a>
+{% endblock %}
+
+{% block content %}
+{% if objetivos %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-bullseye me-2"></i>
+                Lista de Objetivos Financieros
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Monto Objetivo</th>
+                            <th>Plazo</th>
+                            <th>Ahorro Mensual</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for objetivo in objetivos %}
+                        <tr>
+                            <td>
+                                <strong>{{ objetivo.nombre }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ objetivo.get_tipo_display }}</span>
+                            </td>
+                            <td>
+                                <span class="text-primary fw-bold">${{ objetivo.monto_objetivo|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ objetivo.plazo_meses }} meses</span>
+                            </td>
+                            <td>
+                                <span class="text-success fw-bold">${{ objetivo.ahorro_mensual_requerido|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                {% if objetivo.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'finanzas:editar_objetivo' objetivo.pk %}" 
+                                       class="btn btn-outline-primary" 
+                                       title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-outline-danger" 
+                                            title="Eliminar"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal{{ objetivo.pk }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Modal de confirmación de eliminación -->
+                        <div class="modal fade" id="deleteModal{{ objetivo.pk }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirmar Eliminación</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>¿Estás seguro de que quieres eliminar el objetivo <strong>"{{ objetivo.nombre }}"</strong>?</p>
+                                        <p class="text-muted small">Esta acción no se puede deshacer.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <form method="post" action="{% url 'finanzas:eliminar_objetivo' objetivo.pk %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Resumen -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Total de Objetivos</h6>
+                            <h4 class="text-primary">{{ objetivos|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Monto Total Objetivo</h6>
+                            <h4 class="text-info">
+                                ${{ objetivos|length|add:"0"|floatformat:0 }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Ahorro Mensual Total</h6>
+                            <h4 class="text-success">
+                                ${{ objetivos|length|add:"0"|floatformat:0 }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-bullseye fa-3x text-muted mb-3"></i>
+                    <h4>No hay objetivos financieros</h4>
+                    <p class="text-muted">Comienza estableciendo tus metas financieras para tener un plan claro de ahorro.</p>
+                    <a href="{% url 'finanzas:nuevo_objetivo' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>
+                        Crear Primer Objetivo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %} 

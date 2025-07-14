@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Simulaciones - Finansas{% endblock %}
+{% block page_title %}Mis Simulaciones de Crédito{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'finanzas:nueva_simulacion' %}" class="btn btn-primary">
+    <i class="fas fa-plus me-1"></i>
+    Nueva Simulación
+</a>
+{% endblock %}
+
+{% block content %}
+{% if simulaciones %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-calculator me-2"></i>
+                Lista de Simulaciones de Crédito
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Valor Propiedad</th>
+                            <th>Enganche</th>
+                            <th>Monto Crédito</th>
+                            <th>Pago Mensual</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for simulacion in simulaciones %}
+                        <tr>
+                            <td>
+                                <strong>{{ simulacion.nombre }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ simulacion.get_tipo_display }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold">${{ simulacion.valor_propiedad|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ simulacion.enganche_porcentaje }}%</span>
+                                <br>
+                                <small>${{ simulacion.monto_enganche|floatformat:2 }}</small>
+                            </td>
+                            <td>
+                                <span class="text-info fw-bold">${{ simulacion.monto_credito|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                <span class="text-success fw-bold">${{ simulacion.pago_mensual|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                {% if simulacion.es_viable %}
+                                    <span class="badge bg-success">Viable</span>
+                                {% else %}
+                                    <span class="badge bg-danger">No Viable</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'finanzas:detalle_simulacion' simulacion.pk %}" 
+                                       class="btn btn-outline-info" 
+                                       title="Ver Detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-outline-danger" 
+                                            title="Eliminar"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal{{ simulacion.pk }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Modal de confirmación de eliminación -->
+                        <div class="modal fade" id="deleteModal{{ simulacion.pk }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirmar Eliminación</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>¿Estás seguro de que quieres eliminar la simulación <strong>"{{ simulacion.nombre }}"</strong>?</p>
+                                        <p class="text-muted small">Esta acción no se puede deshacer.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <form method="post" action="{% url 'finanzas:eliminar_simulacion' simulacion.pk %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Resumen -->
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Total Simulaciones</h6>
+                            <h4 class="text-primary">{{ simulaciones|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Simulaciones Viables</h6>
+                            <h4 class="text-success">
+                                {{ simulaciones|length|add:"0" }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Simulaciones No Viables</h6>
+                            <h4 class="text-danger">
+                                {{ simulaciones|length|add:"0" }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Pago Promedio</h6>
+                            <h4 class="text-warning">
+                                ${{ simulaciones|length|add:"0"|floatformat:0 }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-calculator fa-3x text-muted mb-3"></i>
+                    <h4>No hay simulaciones de crédito</h4>
+                    <p class="text-muted">Comienza creando simulaciones para evaluar diferentes opciones de crédito.</p>
+                    <a href="{% url 'finanzas:nueva_simulacion' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>
+                        Crear Primera Simulación
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %} 

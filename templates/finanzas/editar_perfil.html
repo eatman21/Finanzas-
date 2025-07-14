@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if perfil %}Editar{% else %}Crear{% endif %} Perfil Financiero - Finansas{% endblock %}
+{% block page_title %}{% if perfil %}Editar{% else %}Crear{% endif %} Perfil Financiero{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-edit me-2"></i>
+                    Información Financiera
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.ingreso_mensual.id_for_label }}" class="form-label">
+                                Ingreso Mensual Principal *
+                            </label>
+                            {{ form.ingreso_mensual }}
+                            {% if form.ingreso_mensual.errors %}
+                                <div class="text-danger small">{{ form.ingreso_mensual.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.otros_ingresos.id_for_label }}" class="form-label">
+                                Otros Ingresos
+                            </label>
+                            {{ form.otros_ingresos }}
+                            {% if form.otros_ingresos.errors %}
+                                <div class="text-danger small">{{ form.otros_ingresos.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.gastos_fijos.id_for_label }}" class="form-label">
+                                Gastos Fijos Mensuales *
+                            </label>
+                            {{ form.gastos_fijos }}
+                            {% if form.gastos_fijos.errors %}
+                                <div class="text-danger small">{{ form.gastos_fijos.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.ahorro_mensual.id_for_label }}" class="form-label">
+                                Ahorro Mensual Objetivo *
+                            </label>
+                            {{ form.ahorro_mensual }}
+                            {% if form.ahorro_mensual.errors %}
+                                <div class="text-danger small">{{ form.ahorro_mensual.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.ahorro_actual.id_for_label }}" class="form-label">
+                                Ahorro Actual
+                            </label>
+                            {{ form.ahorro_actual }}
+                            {% if form.ahorro_actual.errors %}
+                                <div class="text-danger small">{{ form.ahorro_actual.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.score_crediticio.id_for_label }}" class="form-label">
+                                Score Crediticio
+                            </label>
+                            {{ form.score_crediticio }}
+                            <div class="form-text">Rango: 300-850 (opcional)</div>
+                            {% if form.score_crediticio.errors %}
+                                <div class="text-danger small">{{ form.score_crediticio.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'finanzas:dashboard' %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-1"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            {% if perfil %}Actualizar{% else %}Crear{% endif %} Perfil
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Información adicional -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Importante
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Los campos marcados con * son obligatorios</li>
+                    <li>El ingreso mensual debe ser mayor a $0.01</li>
+                    <li>Los gastos fijos incluyen renta, servicios, alimentación, etc.</li>
+                    <li>El score crediticio es opcional pero ayuda a obtener mejores recomendaciones</li>
+                    <li>La capacidad de endeudamiento se calcula automáticamente como el 35% de tu ingreso total</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Finansas{% endblock %}
+{% block page_title %}Dashboard Financiero{% endblock %}
+
+{% block content %}
+{% if perfil %}
+    <!-- Estadísticas principales -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-value">${{ perfil.ingreso_total|floatformat:0 }}</div>
+                    <div class="stat-label">Ingreso Total Mensual</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-value">${{ perfil.capacidad_ahorro|floatformat:0 }}</div>
+                    <div class="stat-label">Capacidad de Ahorro</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-value">${{ perfil.capacidad_endeudamiento|floatformat:0 }}</div>
+                    <div class="stat-label">Capacidad de Endeudamiento</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-value">${{ perfil.ahorro_actual|floatformat:0 }}</div>
+                    <div class="stat-label">Ahorro Actual</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Deudas -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>
+                        Deudas Activas
+                    </h5>
+                    <a href="{% url 'finanzas:nueva_deuda' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>
+                        Nueva Deuda
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if deudas %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Deuda</th>
+                                        <th>Saldo</th>
+                                        <th>Pago Mensual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for deuda in deudas %}
+                                    <tr>
+                                        <td>{{ deuda.nombre }}</td>
+                                        <td>${{ deuda.saldo_actual|floatformat:0 }}</td>
+                                        <td>${{ deuda.pago_mensual|floatformat:0 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-end">
+                            <a href="{% url 'finanzas:lista_deudas' %}" class="btn btn-outline-primary btn-sm">
+                                Ver todas las deudas
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No hay deudas registradas</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Objetivos -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bullseye me-2"></i>
+                        Objetivos Financieros
+                    </h5>
+                    <a href="{% url 'finanzas:nuevo_objetivo' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>
+                        Nuevo Objetivo
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if objetivos %}
+                        {% for objetivo in objetivos %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-1">{{ objetivo.nombre }}</h6>
+                                <small class="text-muted">${{ objetivo.monto_objetivo|floatformat:0 }} - {{ objetivo.plazo_meses }} meses</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold">${{ objetivo.ahorro_mensual_requerido|floatformat:0 }}</div>
+                                <small class="text-muted">mensual</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="text-end">
+                            <a href="{% url 'finanzas:lista_objetivos' %}" class="btn btn-outline-primary btn-sm">
+                                Ver todos los objetivos
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No hay objetivos financieros</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Simulaciones Recientes -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>
+                        Simulaciones Recientes
+                    </h5>
+                    <a href="{% url 'finanzas:nueva_simulacion' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>
+                        Nueva Simulación
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if simulaciones %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Simulación</th>
+                                        <th>Tipo</th>
+                                        <th>Valor</th>
+                                        <th>Pago Mensual</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for simulacion in simulaciones %}
+                                    <tr>
+                                        <td>{{ simulacion.nombre }}</td>
+                                        <td>{{ simulacion.get_tipo_display }}</td>
+                                        <td>${{ simulacion.valor_propiedad|floatformat:0 }}</td>
+                                        <td>${{ simulacion.pago_mensual|floatformat:0 }}</td>
+                                        <td>
+                                            {% if simulacion.es_viable %}
+                                                <span class="badge bg-success">Viable</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">No Viable</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-end">
+                            <a href="{% url 'finanzas:lista_simulaciones' %}" class="btn btn-outline-primary btn-sm">
+                                Ver todas las simulaciones
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No hay simulaciones de crédito</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recomendaciones -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Recomendaciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recomendaciones %}
+                        {% for recomendacion in recomendaciones %}
+                        <div class="mb-3">
+                            <h6 class="mb-1">{{ recomendacion.titulo }}</h6>
+                            <p class="text-muted small mb-1">{{ recomendacion.descripcion|truncatewords:20 }}</p>
+                            <span class="badge bg-{% if recomendacion.prioridad == 'ALTA' %}danger{% elif recomendacion.prioridad == 'MEDIA' %}warning{% else %}info{% endif %}">
+                                {{ recomendacion.get_prioridad_display }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                        <div class="text-end">
+                            <a href="{% url 'finanzas:lista_recomendaciones' %}" class="btn btn-outline-primary btn-sm">
+                                Ver todas las recomendaciones
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No hay recomendaciones disponibles</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <!-- Perfil no creado -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
+                    <h4>Bienvenido a Finansas</h4>
+                    <p class="text-muted">Para comenzar a usar la aplicación, necesitas crear tu perfil financiero.</p>
+                    <a href="{% url 'finanzas:editar_perfil' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>
+                        Crear Perfil Financiero
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %} 

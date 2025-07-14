@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Simulación - Finansas{% endblock %}
+{% block page_title %}Detalle de Simulación: {{ simulacion.nombre }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'finanzas:lista_simulaciones' %}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Volver
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Información de la simulación -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información de la Simulación
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Nombre:</label>
+                        <p class="mb-0">{{ simulacion.nombre }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Tipo de Crédito:</label>
+                        <p class="mb-0">{{ simulacion.get_tipo_display }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Valor de la Propiedad:</label>
+                        <p class="mb-0 text-primary fw-bold">${{ simulacion.valor_propiedad|floatformat:2 }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Porcentaje de Enganche:</label>
+                        <p class="mb-0">{{ simulacion.enganche_porcentaje }}%</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Monto de Enganche:</label>
+                        <p class="mb-0 text-success fw-bold">${{ simulacion.monto_enganche|floatformat:2 }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Monto del Crédito:</label>
+                        <p class="mb-0 text-info fw-bold">${{ simulacion.monto_credito|floatformat:2 }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Tasa de Interés Anual:</label>
+                        <p class="mb-0">{{ simulacion.tasa_interes_anual }}%</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Plazo:</label>
+                        <p class="mb-0">{{ simulacion.plazo_anos }} años ({{ simulacion.plazo_meses }} meses)</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Gastos Adicionales:</label>
+                        <p class="mb-0">${{ simulacion.gastos_adicionales|floatformat:2 }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Fecha de Simulación:</label>
+                        <p class="mb-0">{{ simulacion.fecha_simulacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cálculos -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calculator me-2"></i>
+                    Cálculos del Crédito
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Pago Mensual:</span>
+                            <strong class="text-primary">${{ simulacion.pago_mensual|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Pago Total:</span>
+                            <strong class="text-warning">${{ simulacion.pago_total|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Intereses Totales:</span>
+                            <strong class="text-danger">${{ simulacion.intereses_totales|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Estado:</span>
+                            {% if simulacion.es_viable %}
+                                <span class="badge bg-success">Viable</span>
+                            {% else %}
+                                <span class="badge bg-danger">No Viable</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar con información adicional -->
+    <div class="col-lg-4">
+        <!-- Comparación con capacidad de endeudamiento -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Análisis de Viabilidad
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Tu Capacidad de Endeudamiento:</label>
+                    <div class="fw-bold text-success">${{ simulacion.perfil.capacidad_endeudamiento|floatformat:2 }}</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Pago Mensual Requerido:</label>
+                    <div class="fw-bold text-primary">${{ simulacion.pago_mensual|floatformat:2 }}</div>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <label class="form-label">Diferencia:</label>
+                    {% if simulacion.es_viable %}
+                        <div class="fw-bold text-success">
+                            ${{ simulacion.perfil.capacidad_endeudamiento|add:"0"|sub:simulacion.pago_mensual|floatformat:2 }}
+                        </div>
+                        <small class="text-success">Disponible para otros gastos</small>
+                    {% else %}
+                        <div class="fw-bold text-danger">
+                            ${{ simulacion.pago_mensual|sub:simulacion.perfil.capacidad_endeudamiento|floatformat:2 }}
+                        </div>
+                        <small class="text-danger">Excede tu capacidad</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del perfil -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Tu Perfil Financiero
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <small class="text-muted">Ingreso Total:</small>
+                    <div class="fw-bold">${{ simulacion.perfil.ingreso_total|floatformat:2 }}</div>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">Gastos Fijos:</small>
+                    <div class="fw-bold">${{ simulacion.perfil.gastos_fijos|floatformat:2 }}</div>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">Capacidad de Ahorro:</small>
+                    <div class="fw-bold text-success">${{ simulacion.perfil.capacidad_ahorro|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de amortización -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>
+                    Tabla de Amortización (Primeros 12 Meses)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Mes</th>
+                                <th>Pago Mensual</th>
+                                <th>Capital</th>
+                                <th>Interés</th>
+                                <th>Saldo Restante</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fila in tabla_amortizacion %}
+                            <tr>
+                                <td>{{ fila.mes }}</td>
+                                <td>${{ fila.pago|floatformat:2 }}</td>
+                                <td>${{ fila.capital|floatformat:2 }}</td>
+                                <td>${{ fila.interes|floatformat:2 }}</td>
+                                <td>${{ fila.saldo|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Mostrando los primeros 12 meses de {{ simulacion.plazo_meses }} meses totales
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

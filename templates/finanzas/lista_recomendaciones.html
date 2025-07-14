@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Recomendaciones - Finansas{% endblock %}
+{% block page_title %}Mis Recomendaciones Financieras{% endblock %}
+
+{% block content %}
+{% if recomendaciones %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-lightbulb me-2"></i>
+                Recomendaciones Personalizadas
+            </h5>
+        </div>
+        <div class="card-body">
+            {% for recomendacion in recomendaciones %}
+            <div class="card mb-3 {% if recomendacion.prioridad == 'ALTA' %}border-danger{% elif recomendacion.prioridad == 'MEDIA' %}border-warning{% else %}border-info{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{ recomendacion.titulo }}</h6>
+                    <span class="badge bg-{% if recomendacion.prioridad == 'ALTA' %}danger{% elif recomendacion.prioridad == 'MEDIA' %}warning{% else %}info{% endif %}">
+                        {{ recomendacion.get_prioridad_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ recomendacion.descripcion }}</p>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>
+                        {{ recomendacion.fecha_creacion|date:"d/m/Y H:i" }}
+                    </small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-lightbulb fa-3x text-muted mb-3"></i>
+                    <h4>No hay recomendaciones disponibles</h4>
+                    <p class="text-muted">Las recomendaciones se generan automáticamente basándose en tu perfil financiero.</p>
+                    <p class="text-muted">Completa tu información financiera para recibir recomendaciones personalizadas.</p>
+                    <a href="{% url 'finanzas:perfil_financiero' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user me-2"></i>
+                        Ver Mi Perfil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %} 

@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva Simulación - Finansas{% endblock %}
+{% block page_title %}Nueva Simulación de Crédito{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus me-2"></i>
+                    Crear Nueva Simulación de Crédito
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.tipo.id_for_label }}" class="form-label">
+                                Tipo de Crédito *
+                            </label>
+                            {{ form.tipo }}
+                            {% if form.tipo.errors %}
+                                <div class="text-danger small">{{ form.tipo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                                Nombre de la Simulación *
+                            </label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                                <div class="text-danger small">{{ form.nombre.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.valor_propiedad.id_for_label }}" class="form-label">
+                                Valor de la Propiedad *
+                            </label>
+                            {{ form.valor_propiedad }}
+                            {% if form.valor_propiedad.errors %}
+                                <div class="text-danger small">{{ form.valor_propiedad.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.enganche_porcentaje.id_for_label }}" class="form-label">
+                                Porcentaje de Enganche *
+                            </label>
+                            {{ form.enganche_porcentaje }}
+                            {% if form.enganche_porcentaje.errors %}
+                                <div class="text-danger small">{{ form.enganche_porcentaje.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.tasa_interes_anual.id_for_label }}" class="form-label">
+                                Tasa de Interés Anual (%) *
+                            </label>
+                            {{ form.tasa_interes_anual }}
+                            {% if form.tasa_interes_anual.errors %}
+                                <div class="text-danger small">{{ form.tasa_interes_anual.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.plazo_anos.id_for_label }}" class="form-label">
+                                Plazo en Años *
+                            </label>
+                            {{ form.plazo_anos }}
+                            {% if form.plazo_anos.errors %}
+                                <div class="text-danger small">{{ form.plazo_anos.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.gastos_adicionales.id_for_label }}" class="form-label">
+                                Gastos Adicionales
+                            </label>
+                            {{ form.gastos_adicionales }}
+                            <div class="form-text">Seguros, notaría, etc.</div>
+                            {% if form.gastos_adicionales.errors %}
+                                <div class="text-danger small">{{ form.gastos_adicionales.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'finanzas:lista_simulaciones' %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-1"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            Crear Simulación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Información adicional -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información sobre Simulaciones de Crédito
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Los campos marcados con * son obligatorios</li>
+                    <li>El valor de la propiedad debe ser mayor a $0</li>
+                    <li>El porcentaje de enganche debe estar entre 0% y 100%</li>
+                    <li>La tasa de interés debe estar entre 0% y 100%</li>
+                    <li>El plazo debe ser de al menos 1 año</li>
+                    <li>El sistema calculará automáticamente el pago mensual y la viabilidad</li>
+                    <li>Una simulación es viable si el pago mensual no excede tu capacidad de endeudamiento</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

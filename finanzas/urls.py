@@ -1,6 +1,6 @@
 from django.urls import path
 from django.shortcuts import redirect
-from . import views
+from finanzas import views
 
 app_name = 'finanzas'
 
@@ -33,4 +33,5 @@ urlpatterns = [
          views.eliminar_simulacion, name='eliminar_simulacion'),
     path('recomendaciones/', views.lista_recomendaciones,
          name='lista_recomendaciones'),
+    path('calculadora/', views.calculadora_moderna, name='calculadora'),
 ]

@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.db.models import QuerySet
+from typing import Optional
 from .models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito, Recomendacion
 from .forms import PerfilFinancieroForm, DeudaForm, ObjetivoFinancieroForm, SimulacionCreditoForm
 
@@ -11,26 +13,47 @@ from .forms import PerfilFinancieroForm, DeudaForm, ObjetivoFinancieroForm, Simu
 def dashboard(request):
     """Vista principal del dashboard financiero"""
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
-    except PerfilFinanciero.DoesNotExist:
+        perfil: Optional[PerfilFinanciero] = PerfilFinanciero.objects.get(
+            usuario=request.user)  # type: ignore
+    except PerfilFinanciero.DoesNotExist:  # type: ignore
         perfil = None
 
     context = {
         'perfil': perfil,
+        # type: ignore
         'deudas': Deuda.objects.filter(perfil__usuario=request.user) if perfil else [],
+        # type: ignore
         'objetivos': ObjetivoFinanciero.objects.filter(perfil__usuario=request.user, activo=True) if perfil else [],
+        # type: ignore
         'simulaciones': SimulacionCredito.objects.filter(perfil__usuario=request.user)[:5] if perfil else [],
+        # type: ignore
         'recomendaciones': Recomendacion.objects.filter(perfil__usuario=request.user, activa=True)[:3] if perfil else [],
     }
     return render(request, 'finanzas/dashboard.html', context)
 
 
 @login_required
+def calculadora_moderna(request):
+    """Vista para la calculadora financiera moderna"""
+    try:
+        perfil: Optional[PerfilFinanciero] = PerfilFinanciero.objects.get(
+            usuario=request.user)  # type: ignore
+    except PerfilFinanciero.DoesNotExist:  # type: ignore
+        perfil = None
+
+    context = {
+        'perfil': perfil,
+    }
+    return render(request, 'finanzas/calculadora_moderna.html', context)
+
+
+@login_required
 def perfil_financiero(request):
     """Vista para mostrar el perfil financiero del usuario"""
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
-    except PerfilFinanciero.DoesNotExist:
+        perfil: PerfilFinanciero = PerfilFinanciero.objects.get(
+            usuario=request.user)  # type: ignore
+    except PerfilFinanciero.DoesNotExist:  # type: ignore
         return redirect('finanzas:editar_perfil')
 
     context = {
@@ -45,8 +68,9 @@ def perfil_financiero(request):
 def editar_perfil(request):
     """Vista para crear o editar el perfil financiero"""
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
-    except PerfilFinanciero.DoesNotExist:
+        perfil: Optional[PerfilFinanciero] = PerfilFinanciero.objects.get(
+            usuario=request.user)  # type: ignore
+    except PerfilFinanciero.DoesNotExist:  # type: ignore
         perfil = None
 
     if request.method == 'POST':
@@ -72,9 +96,10 @@ def editar_perfil(request):
 def lista_deudas(request):
     """Vista para listar las deudas del usuario"""
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
+        perfil: PerfilFinanciero = PerfilFinanciero.objects.get(
+            usuario=request.user)  # type: ignore
         deudas = perfil.deudas.all()
-    except PerfilFinanciero.DoesNotExist:
+    except PerfilFinanciero.DoesNotExist:  # type: ignore
         deudas = []
 
     context = {
@@ -87,8 +112,9 @@ def lista_deudas(request):
 def nueva_deuda(request):
     """Vista para crear una nueva deuda"""
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
-    except PerfilFinanciero.DoesNotExist:
+        perfil: PerfilFinanciero = PerfilFinanciero.objects.get(
+            usuario=request.user)  # type: ignore
+    except PerfilFinanciero.DoesNotExist:  # type: ignore
         messages.error(request, 'Primero debes crear tu perfil financiero.')
         return redirect('finanzas:editar_perfil')
 
@@ -144,9 +170,10 @@ def eliminar_deuda(request, pk):
 def lista_objetivos(request):
     """Vista para listar los objetivos financieros del usuario"""
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
+        perfil: PerfilFinanciero = PerfilFinanciero.objects.get(
+            usuario=request.user)  # type: ignore
         objetivos = perfil.objetivos.all()
-    except PerfilFinanciero.DoesNotExist:
+    except PerfilFinanciero.DoesNotExist:  # type: ignore
         objetivos = []
 
     context = {
@@ -159,8 +186,9 @@ def lista_objetivos(request):
 def nuevo_objetivo(request):
     """Vista para crear un nuevo objetivo financiero"""
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
-    except PerfilFinanciero.DoesNotExist:
+        perfil: PerfilFinanciero = PerfilFinanciero.objects.get(
+            usuario=request.user)  # type: ignore
+    except PerfilFinanciero.DoesNotExist:  # type: ignore
         messages.error(request, 'Primero debes crear tu perfil financiero.')
         return redirect('finanzas:editar_perfil')
 
@@ -220,7 +248,7 @@ def eliminar_objetivo(request, pk):
 def lista_simulaciones(request):
     """Vista para listar las simulaciones de crédito del usuario"""
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
+        perfil = get_object_or_404(PerfilFinanciero, usuario=request.user)
         simulaciones = perfil.simulaciones.all()
     except PerfilFinanciero.DoesNotExist:
         simulaciones = []
@@ -235,7 +263,7 @@ def lista_simulaciones(request):
 def nueva_simulacion(request):
     """Vista para crear una nueva simulación de crédito"""
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
+        perfil = get_object_or_404(PerfilFinanciero, usuario=request.user)
     except PerfilFinanciero.DoesNotExist:
         messages.error(request, 'Primero debes crear tu perfil financiero.')
         return redirect('finanzas:editar_perfil')

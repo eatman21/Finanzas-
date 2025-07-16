@@ -116,6 +116,13 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {% if 'calculadora' in request.resolver_match.url_name %}active{% endif %}" 
+                               href="{% url 'finanzas:calculadora_moderna' %}">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Calculadora Moderna
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {% if 'recomendacion' in request.resolver_match.url_name %}active{% endif %}" 
                                href="{% url 'finanzas:lista_recomendaciones' %}">
                                 <i class="fas fa-lightbulb me-2"></i>

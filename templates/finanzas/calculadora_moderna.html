@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Calculadora Financiera Moderna - Finansas{% endblock %}
+{% block page_title %}Calculadora de Viabilidad Financiera{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/calculator.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    .main-content {
+        background-color: #1a1a2e !important;
+    }
+    .calculator-container {
+        background: #1a1a2e;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calculator-container">
+    <!-- Header Section -->
+    <div class="calculator-header">
+        <h1>Calculadora de Viabilidad Financiera</h1>
+        <p>Evalúa la viabilidad de tu crédito hipotecario con nuestra calculadora moderna y precisa</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Input Section -->
+            <div class="calculator-card">
+                <div class="row">
+                    <!-- Property Information -->
+                    <div class="col-md-6">
+                        <h4 class="text-white mb-4">
+                            <i class="fas fa-home me-2"></i>Información de la Propiedad
+                        </h4>
+                        
+                        <div class="input-group">
+                            <label for="property-value">Valor de la Propiedad</label>
+                            <input type="number" id="property-value" placeholder="Ej: 2500000" step="1000">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="down-payment">Enganche</label>
+                            <input type="number" id="down-payment" placeholder="Ej: 500000" step="1000">
+                            <div class="range-slider">
+                                <input type="range" id="down-payment-range" min="5" max="50" value="20">
+                                <span class="range-value" id="down-payment-display">20%</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="additional-costs">Gastos Adicionales</label>
+                            <input type="number" id="additional-costs" placeholder="Seguros, notaría, etc." step="1000">
+                        </div>
+                    </div>
+
+                    <!-- Loan Information -->
+                    <div class="col-md-6">
+                        <h4 class="text-white mb-4">
+                            <i class="fas fa-percentage me-2"></i>Términos del Crédito
+                        </h4>
+                        
+                        <div class="input-group">
+                            <label for="interest-rate">Tasa de Interés Anual</label>
+                            <input type="number" id="interest-rate" placeholder="Ej: 10.5" step="0.1" min="0" max="100">
+                            <div class="range-slider">
+                                <input type="range" id="interest-rate-range" min="5" max="25" value="10" step="0.5">
+                                <span class="range-value" id="interest-rate-display">10%</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="loan-term">Plazo del Crédito (Años)</label>
+                            <input type="number" id="loan-term" placeholder="Ej: 20" min="1" max="30">
+                            <div class="range-slider">
+                                <input type="range" id="loan-term-range" min="5" max="30" value="20">
+                                <span class="range-value" id="loan-term-display">20 años</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="loan-amount">Monto del Crédito</label>
+                            <input type="text" id="loan-amount" readonly value="$0.00" class="bg-dark text-success">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Income Information -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h4 class="text-white mb-4">
+                            <i class="fas fa-wallet me-2"></i>Información Financiera
+                        </h4>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <label for="monthly-income">Ingreso Mensual</label>
+                            <input type="number" id="monthly-income" placeholder="Ej: 50000" step="1000">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <label for="monthly-expenses">Gastos Mensuales</label>
+                            <input type="number" id="monthly-expenses" placeholder="Ej: 30000" step="1000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row mt-4">
+                    <div class="col-md-8">
+                        <button type="button" id="calculate-btn" class="calculate-btn">
+                            <i class="fas fa-calculator me-2"></i>Calcular Viabilidad
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" id="reset-btn" class="btn btn-outline-light w-100" style="padding: 1.25rem;">
+                            <i class="fas fa-redo me-2"></i>Reiniciar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-section" class="calculator-card" style="display: none;">
+                <h4 class="text-white mb-4">
+                    <i class="fas fa-chart-line me-2"></i>Resultados del Análisis
+                </h4>
+
+                <!-- Viability Indicator -->
+                <div id="viability-indicator" class="viability-indicator">
+                    <div id="viability-icon" class="viability-icon">
+                        <i class="fas fa-question"></i>
+                    </div>
+                    <div>
+                        <div id="viability-text" class="viability-text">Calculando viabilidad...</div>
+                    </div>
+                </div>
+
+                <!-- Results Grid -->
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div id="monthly-payment" class="result-value">$0.00</div>
+                        <div class="result-label">Pago Mensual</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div id="total-payment" class="result-value">$0.00</div>
+                        <div class="result-label">Pago Total</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div id="total-interest" class="result-value">$0.00</div>
+                        <div class="result-label">Intereses Totales</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div id="loan-amount-result" class="result-value">$0.00</div>
+                        <div class="result-label">Monto del Crédito</div>
+                    </div>
+                </div>
+
+                <!-- Amortization Table -->
+                <div class="amortization-table">
+                    <h5 class="text-white mb-3">
+                        <i class="fas fa-table me-2"></i>Tabla de Amortización (Primeros 12 Meses)
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th>Mes</th>
+                                    <th>Pago Mensual</th>
+                                    <th>Capital</th>
+                                    <th>Interés</th>
+                                    <th>Saldo Restante</th>
+                                </tr>
+                            </thead>
+                            <tbody id="amortization-table">
+                                <!-- JavaScript will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Cards -->
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="calculator-card">
+                <h5 class="text-white mb-3">
+                    <i class="fas fa-lightbulb me-2"></i>Consejos
+                </h5>
+                <ul class="text-light">
+                    <li>El enganche mínimo recomendado es del 20%</li>
+                    <li>Tu capacidad de endeudamiento no debe exceder el 35% de tus ingresos</li>
+                    <li>Considera gastos adicionales como seguros y mantenimiento</li>
+                    <li>Evalúa diferentes plazos para encontrar la mejor opción</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="calculator-card">
+                <h5 class="text-white mb-3">
+                    <i class="fas fa-info-circle me-2"></i>Información Importante
+                </h5>
+                <ul class="text-light">
+                    <li>Los resultados son estimaciones</li>
+                    <li>Las tasas pueden variar según el banco</li>
+                    <li>Considera tu historial crediticio</li>
+                    <li>Consulta con un asesor financiero</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="calculator-card">
+                <h5 class="text-white mb-3">
+                    <i class="fas fa-chart-bar me-2"></i>Métricas Clave
+                </h5>
+                <div class="text-light">
+                    <p><strong>Capacidad de Endeudamiento:</strong> 35% del ingreso neto</p>
+                    <p><strong>Enganche Mínimo:</strong> 20% del valor de la propiedad</p>
+                    <p><strong>Plazo Máximo:</strong> 30 años</p>
+                    <p><strong>Tasa Promedio:</strong> 10-15% anual</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/calculator.js' %}"></script>
+{% endblock %} 

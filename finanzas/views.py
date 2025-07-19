@@ -20,11 +20,11 @@ def dashboard(request):
 
     context = {
         'perfil': perfil,
-        # type: ignore
+        # type: ignore[attr-defined]
         'deudas': Deuda.objects.filter(perfil__usuario=request.user) if perfil else [],
-        # type: ignore
+        # type: ignore[attr-defined]
         'objetivos': ObjetivoFinanciero.objects.filter(perfil__usuario=request.user, activo=True) if perfil else [],
-        # type: ignore
+        # type: ignore[attr-defined]
         'simulaciones': SimulacionCredito.objects.filter(perfil__usuario=request.user)[:5] if perfil else [],
         # type: ignore
         'recomendaciones': Recomendacion.objects.filter(perfil__usuario=request.user, activa=True)[:3] if perfil else [],
@@ -68,9 +68,9 @@ def perfil_financiero(request):
 def editar_perfil(request):
     """Vista para crear o editar el perfil financiero"""
     try:
-        perfil: Optional[PerfilFinanciero] = PerfilFinanciero.objects.get(
-            usuario=request.user)  # type: ignore
-    except PerfilFinanciero.DoesNotExist:  # type: ignore
+        perfil: Optional[PerfilFinanciero] = PerfilFinanciero.objects.get(  # type: ignore[attr-defined]
+            usuario=request.user)
+    except PerfilFinanciero.DoesNotExist:  # type: ignore[attr-defined]
         perfil = None
 
     if request.method == 'POST':
@@ -96,10 +96,10 @@ def editar_perfil(request):
 def lista_deudas(request):
     """Vista para listar las deudas del usuario"""
     try:
-        perfil: PerfilFinanciero = PerfilFinanciero.objects.get(
-            usuario=request.user)  # type: ignore
+        perfil: Optional[PerfilFinanciero] = PerfilFinanciero.objects.get(  # type: ignore[attr-defined]
+            usuario=request.user)
         deudas = perfil.deudas.all()
-    except PerfilFinanciero.DoesNotExist:  # type: ignore
+    except PerfilFinanciero.DoesNotExist:  # type: ignore[attr-defined]
         deudas = []
 
     context = {
@@ -112,9 +112,9 @@ def lista_deudas(request):
 def nueva_deuda(request):
     """Vista para crear una nueva deuda"""
     try:
-        perfil: PerfilFinanciero = PerfilFinanciero.objects.get(
-            usuario=request.user)  # type: ignore
-    except PerfilFinanciero.DoesNotExist:  # type: ignore
+        perfil: Optional[PerfilFinanciero] = PerfilFinanciero.objects.get(  # type: ignore[attr-defined]
+            usuario=request.user)
+    except PerfilFinanciero.DoesNotExist:  # type: ignore[attr-defined]
         messages.error(request, 'Primero debes crear tu perfil financiero.')
         return redirect('finanzas:editar_perfil')
 
@@ -186,11 +186,10 @@ def lista_objetivos(request):
 def nuevo_objetivo(request):
     """Vista para crear un nuevo objetivo financiero"""
     try:
-        perfil: PerfilFinanciero = PerfilFinanciero.objects.get(
-            usuario=request.user)  # type: ignore
-    except PerfilFinanciero.DoesNotExist:  # type: ignore
-        messages.error(request, 'Primero debes crear tu perfil financiero.')
-        return redirect('finanzas:editar_perfil')
+        perfil = get_object_or_404(PerfilFinanciero, usuario=request.user)
+    except PerfilFinanciero.DoesNotExist:
+        messages.error(request, 'Debe completar su perfil financiero primero.')
+        return redirect('finanzas:crear_perfil')
 
     if request.method == 'POST':
         form = ObjetivoFinancieroForm(request.POST)

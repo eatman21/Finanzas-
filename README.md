@@ -1,225 +1,298 @@
-# Finansas - Sistema de Gestión Financiera Personal
+# Finansas - Financial Management Application
 
-Una aplicación web desarrollada en Django para la gestión financiera personal, que permite a los usuarios administrar sus perfiles financieros, deudas, objetivos financieros y realizar simulaciones de crédito.
+A comprehensive Django-based financial management application with multi-currency support, REST API, and modern UI.
 
-## Características Principales
+## 🌟 Features
 
-- **Perfil Financiero**: Gestión de ingresos, gastos, ahorros y score crediticio
-- **Gestión de Deudas**: Registro y seguimiento de diferentes tipos de deudas
-- **Objetivos Financieros**: Planificación y seguimiento de metas financieras
-- **Simulaciones de Crédito**: Cálculo de pagos mensuales y tablas de amortización
-- **Recomendaciones**: Sugerencias personalizadas basadas en el perfil financiero
-- **Dashboard Interactivo**: Vista general de la situación financiera
+### 💰 Financial Management
 
-## Instalación y Configuración
+- **Multi-Currency Support**: 100+ currencies including COP, MXN, USD, EUR, and more
+- **Debt Tracking**: Monitor loans, credit cards, and other debts
+- **Financial Goals**: Set and track savings goals
+- **Credit Simulations**: Calculate loan payments and amortization tables
+- **Financial Recommendations**: AI-powered financial advice
 
-### Prerrequisitos
+### 🚀 Technical Features
 
-- Python 3.8 o superior
-- pip (gestor de paquetes de Python)
+- **REST API**: Complete API for mobile apps and integrations
+- **Modern UI**: Bootstrap 5 with responsive design
+- **Real-time Calculations**: Interactive financial calculator
+- **Data Export**: Excel/CSV export capabilities
+- **Charts & Visualizations**: Interactive financial charts
+- **Multi-language Support**: Spanish and English
 
-### Pasos de Instalación
+### 🔒 Security & Performance
 
-1. **Clonar el repositorio**
+- **Production Ready**: Security settings and optimizations
+- **Authentication**: User management and permissions
+- **CORS Support**: Cross-origin request handling
+- **Caching**: Redis-based caching
+- **Logging**: Comprehensive logging system
+
+## 🛠️ Technology Stack
+
+- **Backend**: Django 4.2.11
+- **Database**: PostgreSQL (production), SQLite (development)
+- **API**: Django REST Framework
+- **Frontend**: Bootstrap 5, JavaScript, CSS3
+- **Charts**: Plotly, Chart.js
+- **Data Processing**: Pandas, OpenPyXL
+- **Money Handling**: Django Money, Py-moneyed
+- **Caching**: Redis
+- **Deployment**: Gunicorn, WhiteNoise
+
+## 📋 Prerequisites
+
+- Python 3.8+
+- PostgreSQL (for production)
+- Redis (optional, for caching)
+- Git
+
+## 🚀 Quick Start
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/finansas.git
+cd finansas
+```
+
+### 2. Create Virtual Environment
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+
+```bash
+# For development
+pip install -r requirements/development.txt
+
+# For production
+pip install -r requirements/production.txt
+```
+
+### 4. Environment Setup
+
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+### 5. Database Setup
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### 6. Create Superuser
+
+```bash
+python manage.py createsuperuser
+```
+
+### 7. Run Development Server
+
+```bash
+python manage.py runserver
+```
+
+Visit `http://127.0.0.1:8000` to access the application.
+
+## 📁 Project Structure
+
+```
+finansas/
+├── .env                    # Environment variables
+├── .env.example           # Environment template
+├── requirements/          # Split requirements by environment
+│   ├── base.txt
+│   ├── development.txt
+│   └── production.txt
+├── finansas/             # Project configuration
+│   ├── settings/         # Split settings by environment
+│   │   ├── base.py
+│   │   ├── development.py
+│   │   └── production.py
+│   ├── urls.py
+│   └── wsgi.py
+├── finanzas/             # Financial app
+│   ├── models/           # Split models into modules
+│   ├── views/            # Split views by feature
+│   ├── serializers/      # API serializers
+│   ├── forms/            # Forms by feature
+│   ├── tests/            # Comprehensive tests
+│   └── utils/            # Utility functions
+├── api/                  # API app
+├── static/               # Project-wide static files
+├── templates/            # Project-wide templates
+├── docs/                 # Documentation
+└── scripts/              # Utility scripts
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file with the following variables:
+
+```env
+# Django settings
+DJANGO_ENV=development
+SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database
+DB_NAME=finansas_db
+DB_USER=finansas_user
+DB_PASSWORD=your-password
+DB_HOST=localhost
+DB_PORT=5432
+
+# Email
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+
+# Redis (optional)
+REDIS_URL=redis://127.0.0.1:6379/1
+```
+
+## 📚 API Documentation
+
+### Authentication
+
+All API endpoints require authentication. Use session authentication or basic authentication.
+
+### Endpoints
+
+#### Dashboard
+
+- `GET /api/perfiles/dashboard/` - Get dashboard summary
+
+#### Financial Profiles
+
+- `GET /api/perfiles/` - List profiles
+- `POST /api/perfiles/` - Create profile
+- `GET /api/perfiles/{id}/` - Get profile details
+- `PUT /api/perfiles/{id}/` - Update profile
+- `DELETE /api/perfiles/{id}/` - Delete profile
+
+#### Debts
+
+- `GET /api/deudas/` - List debts
+- `POST /api/deudas/` - Create debt
+- `GET /api/deudas/summary/` - Get debt summary
+- `GET /api/deudas/{id}/` - Get debt details
+- `PUT /api/deudas/{id}/` - Update debt
+- `DELETE /api/deudas/{id}/` - Delete debt
+
+#### Financial Goals
+
+- `GET /api/objetivos/` - List goals
+- `POST /api/objetivos/` - Create goal
+- `GET /api/objetivos/summary/` - Get goals summary
+- `GET /api/objetivos/{id}/` - Get goal details
+- `PUT /api/objetivos/{id}/` - Update goal
+- `DELETE /api/objetivos/{id}/` - Delete goal
+
+#### Credit Simulations
+
+- `GET /api/simulaciones/` - List simulations
+- `POST /api/simulaciones/` - Create simulation
+- `GET /api/simulaciones/{id}/amortizacion/` - Get amortization table
+- `GET /api/simulaciones/summary/` - Get simulations summary
+
+#### Recommendations
+
+- `GET /api/recomendaciones/` - List recommendations
+- `GET /api/recomendaciones/active/` - Get active recommendations
+
+## 🧪 Testing
+
+Run tests with:
+
+```bash
+# Run all tests
+python manage.py test
+
+# Run with coverage
+pytest --cov=finanzas
+
+# Run specific test file
+python manage.py test finanzas.tests.test_models
+```
+
+## 🚀 Deployment
+
+### Production Deployment
+
+1. **Set Environment Variables**
 
    ```bash
-   git clone <url-del-repositorio>
-   cd Finansas
+   DJANGO_ENV=production
+   DEBUG=False
+   SECRET_KEY=your-production-secret-key
    ```
 
-2. **Crear un entorno virtual**
+2. **Install Production Dependencies**
 
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # En Windows: venv\Scripts\activate
+   pip install -r requirements/production.txt
    ```
 
-3. **Instalar dependencias**
+3. **Collect Static Files**
 
    ```bash
-   pip install -r requirements.txt
+   python manage.py collectstatic --noinput
    ```
 
-4. **Configurar la base de datos**
+4. **Run Migrations**
 
    ```bash
-   python manage.py makemigrations
    python manage.py migrate
    ```
 
-5. **Crear un superusuario (opcional)**
+5. **Start Production Server**
 
    ```bash
-   python manage.py createsuperuser
+   gunicorn finansas.wsgi:application
    ```
 
-6. **Ejecutar el servidor de desarrollo**
+### Docker Deployment
 
-   ```bash
-   python manage.py runserver
-   ```
-
-7. **Acceder a la aplicación**
-   - Aplicación principal: <http://localhost:8000>
-   - Panel de administración: <http://localhost:8000/admin>
-
-## Estructura del Proyecto
-
-```
-Finansas/
-├── finansas/                 # Configuración principal del proyecto
-│   ├── __init__.py
-│   ├── settings.py          # Configuración de Django
-│   ├── urls.py              # URLs principales
-│   ├── wsgi.py              # Configuración WSGI
-│   └── asgi.py              # Configuración ASGI
-├── finanzas/                # Aplicación principal
-│   ├── __init__.py
-│   ├── admin.py             # Configuración del admin
-│   ├── apps.py              # Configuración de la app
-│   ├── forms.py             # Formularios
-│   ├── models.py            # Modelos de datos
-│   ├── urls.py              # URLs de la app
-│   └── views.py             # Vistas
-├── manage.py                # Script de gestión de Django
-├── requirements.txt         # Dependencias del proyecto
-└── README.md               # Este archivo
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
 ```
 
-## Modelos de Datos
+## 🤝 Contributing
 
-### PerfilFinanciero
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-- Información básica del usuario (ingresos, gastos, ahorros)
-- Cálculo automático de capacidad de ahorro y endeudamiento
-- Score crediticio opcional
+## 📝 License
 
-### Deuda
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- Diferentes tipos de deudas (tarjetas, préstamos, hipotecas)
-- Seguimiento de saldos, pagos mensuales y tasas de interés
-- Fechas de inicio y plazos
+## 🆘 Support
 
-### ObjetivoFinanciero
+For support, email <support@finansas.com> or create an issue in the repository.
 
-- Metas financieras con montos y plazos
-- Cálculo automático del ahorro mensual requerido
-- Estado activo/inactivo
+## 🙏 Acknowledgments
 
-### SimulacionCredito
+- Django community for the excellent framework
+- Bootstrap team for the UI components
+- All contributors and users of this project
 
-- Simulaciones de créditos hipotecarios y automotrices
-- Cálculo de pagos mensuales con fórmula de amortización
-- Tabla de amortización completa
-- Validación de viabilidad según capacidad de endeudamiento
+---
 
-### Recomendacion
-
-- Sugerencias personalizadas para el usuario
-- Sistema de prioridades (Alta, Media, Baja)
-- Estado activo/inactivo
-
-## Uso de la Aplicación
-
-### 1. Crear Perfil Financiero
-
-- Acceder a la aplicación y registrarse
-- Completar la información financiera básica
-- El sistema calculará automáticamente la capacidad de ahorro y endeudamiento
-
-### 2. Gestionar Deudas
-
-- Agregar todas las deudas existentes
-- Especificar montos, tasas de interés y plazos
-- El sistema mostrará un resumen de la situación de deuda
-
-### 3. Establecer Objetivos
-
-- Definir metas financieras (casa, auto, etc.)
-- Especificar montos objetivo y plazos
-- El sistema calculará el ahorro mensual necesario
-
-### 4. Realizar Simulaciones
-
-- Crear simulaciones de créditos hipotecarios o automotrices
-- Ajustar parámetros (valor, enganche, tasa, plazo)
-- Revisar la tabla de amortización y viabilidad
-
-### 5. Revisar Recomendaciones
-
-- El sistema generará recomendaciones basadas en el perfil
-- Priorizar acciones según la urgencia
-- Seguir las sugerencias para mejorar la salud financiera
-
-## Funcionalidades Técnicas
-
-### Cálculos Automáticos
-
-- **Capacidad de Ahorro**: Ingreso total - Gastos fijos
-- **Capacidad de Endeudamiento**: 35% del ingreso total
-- **Pago Mensual**: Fórmula de amortización estándar
-- **Ahorro Requerido**: Monto objetivo / Plazo en meses
-
-### Validaciones
-
-- Valores mínimos para ingresos y montos
-- Rango de score crediticio (300-850)
-- Tasas de interés entre 0% y 100%
-- Plazos mínimos para créditos
-
-### Seguridad
-
-- Autenticación requerida para todas las vistas
-- Validación de propiedad de datos
-- Protección CSRF en formularios
-- Sanitización de entradas
-
-## Personalización
-
-### Configuración de Capacidad de Endeudamiento
-
-El porcentaje de capacidad de endeudamiento se puede modificar en el modelo `PerfilFinanciero`:
-
-```python
-@property
-def capacidad_endeudamiento(self):
-    # Cambiar 0.35 por el porcentaje deseado
-    return self.ingreso_total * Decimal('0.35')
-```
-
-### Agregar Nuevos Tipos de Deuda
-
-Modificar las opciones en el modelo `Deuda`:
-
-```python
-TIPO_DEUDA_CHOICES = [
-    ('TARJETA', 'Tarjeta de Crédito'),
-    ('PERSONAL', 'Préstamo Personal'),
-    # Agregar nuevas opciones aquí
-]
-```
-
-## Contribución
-
-1. Fork el proyecto
-2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir un Pull Request
-
-## Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
-## Soporte
-
-Para soporte técnico o preguntas sobre el proyecto, por favor crear un issue en el repositorio.
-
-## Roadmap
-
-- [ ] Interfaz de usuario mejorada con Bootstrap
-- [ ] Gráficos y visualizaciones de datos
-- [ ] Exportación de reportes en PDF
-- [ ] Integración con APIs bancarias
-- [ ] Notificaciones por email
-- [ ] Aplicación móvil
+**Made with ❤️ for better financial management**

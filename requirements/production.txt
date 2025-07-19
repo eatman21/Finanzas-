@@ -1,0 +1,16 @@
+-r base.txt
+
+# Monitoring and debugging
+sentry-sdk==1.45.0
+
+# Security
+django-csp==3.7
+
+# Performance
+django-cacheops==8.0.0
+
+# Logging
+structlog==24.1.0
+
+# Health checks
+django-health-check==3.17.0 

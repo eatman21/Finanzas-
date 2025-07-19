@@ -1,0 +1,27 @@
+-r base.txt
+
+# Development and debugging
+django-debug-toolbar==4.3.0
+django-extensions==3.2.3
+
+# Testing
+pytest==8.1.1
+pytest-django==4.8.0
+pytest-cov==5.0.0
+factory-boy==3.3.0
+
+# Code quality
+black==24.3.0
+flake8==7.0.0
+isort==5.13.2
+pre-commit==3.7.0
+
+# Development server
+django-debug-toolbar==4.3.0
+
+# Documentation
+sphinx==7.2.6
+sphinx-rtd-theme==2.0.0
+
+# Environment management
+python-dotenv==1.0.1 

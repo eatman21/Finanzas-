@@ -3,10 +3,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Sum, Count, F
 from django.shortcuts import get_object_or_404
-from .models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito, Recomendacion
+from .legacy_models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito, Recomendacion
+from .models.account import Account
+from .models.transaction import Transaction, Category
+from .models.budget import Budget
 from .serializers import (
     PerfilFinancieroSerializer, DeudaSerializer, ObjetivoFinancieroSerializer,
-    SimulacionCreditoSerializer, RecomendacionSerializer, DashboardSerializer
+    SimulacionCreditoSerializer, RecomendacionSerializer,
+    AccountSerializer, TransactionSerializer, CategorySerializer, BudgetSerializer
 )
 
 

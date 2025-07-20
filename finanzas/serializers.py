@@ -1,5 +1,8 @@
+from .legacy_models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito, Recomendacion
+from .models.account import Account
+from .models.transaction import Transaction, Category
+from .models.budget import Budget
 from rest_framework import serializers
-from .models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito, Recomendacion
 
 
 class PerfilFinancieroSerializer(serializers.ModelSerializer):
@@ -63,6 +66,63 @@ class RecomendacionSerializer(serializers.ModelSerializer):
             'prioridad', 'fecha_creacion', 'activa'
         ]
         read_only_fields = ['perfil', 'fecha_creacion']
+
+
+# New Model Serializers
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = [
+            'id', 'name', 'icon', 'color', 'parent',
+            'is_income', 'is_expense', 'created_at'
+        ]
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = [
+            'id', 'user', 'name', 'account_type', 'currency',
+            'initial_balance', 'current_balance', 'description',
+            'is_active', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['user', 'current_balance',
+                            'created_at', 'updated_at']
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(
+        source='category.name', read_only=True)
+    account_name = serializers.CharField(source='account.name', read_only=True)
+
+    class Meta:
+        model = Transaction
+        fields = [
+            'id', 'user', 'account', 'account_name', 'transaction_type',
+            'category', 'category_name', 'amount', 'description', 'notes',
+            'date', 'is_recurring', 'is_cancelled', 'destination_account',
+            'receipt', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['user', 'created_at', 'updated_at']
+
+
+class BudgetSerializer(serializers.ModelSerializer):
+    spent_amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True)
+    remaining_amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True)
+    spent_percentage = serializers.DecimalField(
+        max_digits=5, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Budget
+        fields = [
+            'id', 'user', 'name', 'period', 'start_date', 'end_date',
+            'total_amount', 'description', 'is_active', 'created_at',
+            'updated_at', 'spent_amount', 'remaining_amount', 'spent_percentage'
+        ]
+        read_only_fields = ['user', 'spent_amount', 'remaining_amount',
+                            'spent_percentage', 'created_at', 'updated_at']
 
 
 class DashboardSerializer(serializers.Serializer):

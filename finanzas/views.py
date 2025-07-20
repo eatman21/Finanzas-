@@ -3,9 +3,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.db.models import QuerySet
-from typing import Optional
-from .models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito, Recomendacion
+from django.db.models import Sum, Q
+from django.utils import timezone
+from datetime import datetime, timedelta
+from decimal import Decimal
+from .legacy_models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito, Recomendacion
+from .models.account import Account
+from .models.transaction import Transaction, Category
+from .models.budget import Budget
 from .forms import PerfilFinancieroForm, DeudaForm, ObjetivoFinancieroForm, SimulacionCreditoForm
 
 

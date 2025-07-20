@@ -1,5 +1,9 @@
 from django.contrib import admin
-from .models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito, Recomendacion
+from .legacy_models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito, Recomendacion
+from .models.account import Account, AccountType, Currency
+from .models.transaction import Transaction, Category
+from .models.budget import Budget, BudgetCategory, BudgetPeriod
+from .models.report import Report, ReportType
 
 
 @admin.register(PerfilFinanciero)
@@ -93,3 +97,64 @@ class RecomendacionAdmin(admin.ModelAdmin):
     list_filter = ['prioridad', 'activa', 'fecha_creacion']
     search_fields = ['titulo', 'descripcion', 'perfil__usuario__username']
     date_hierarchy = 'fecha_creacion'
+
+
+# New Models Admin
+@admin.register(Account)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ['name', 'user', 'account_type',
+                    'currency', 'current_balance', 'is_active']
+    list_filter = ['account_type', 'currency', 'is_active', 'created_at']
+    search_fields = ['name', 'user__username', 'description']
+    readonly_fields = ['current_balance', 'created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'parent', 'is_income', 'is_expense', 'color']
+    list_filter = ['is_income', 'is_expense', 'parent']
+    search_fields = ['name']
+    list_editable = ['color']
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ['description', 'user', 'account',
+                    'transaction_type', 'amount', 'date', 'is_cancelled']
+    list_filter = ['transaction_type', 'date',
+                   'is_cancelled', 'is_recurring', 'category']
+    search_fields = ['description', 'user__username', 'account__name']
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'date'
+    list_per_page = 50
+
+
+@admin.register(Budget)
+class BudgetAdmin(admin.ModelAdmin):
+    list_display = ['name', 'user', 'period', 'total_amount',
+                    'spent_amount', 'remaining_amount', 'is_active']
+    list_filter = ['period', 'is_active', 'start_date']
+    search_fields = ['name', 'user__username']
+    readonly_fields = ['spent_amount', 'remaining_amount',
+                       'spent_percentage', 'created_at', 'updated_at']
+    date_hierarchy = 'start_date'
+
+
+@admin.register(BudgetCategory)
+class BudgetCategoryAdmin(admin.ModelAdmin):
+    list_display = ['budget', 'category', 'allocated_amount',
+                    'spent_amount', 'remaining_amount']
+    list_filter = ['budget', 'category']
+    search_fields = ['budget__name', 'category__name']
+    readonly_fields = ['spent_amount', 'remaining_amount', 'spent_percentage']
+
+
+@admin.register(Report)
+class ReportAdmin(admin.ModelAdmin):
+    list_display = ['name', 'user', 'report_type',
+                    'start_date', 'end_date', 'is_saved']
+    list_filter = ['report_type', 'is_saved', 'created_at']
+    search_fields = ['name', 'user__username']
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'created_at'

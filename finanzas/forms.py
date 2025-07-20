@@ -1,5 +1,7 @@
 from django import forms
-from .models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito
+from .legacy_models import PerfilFinanciero, Deuda, ObjetivoFinanciero, SimulacionCredito
+from django.core.validators import MinValueValidator
+from decimal import Decimal
 
 
 class PerfilFinancieroForm(forms.ModelForm):

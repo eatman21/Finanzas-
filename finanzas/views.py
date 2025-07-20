@@ -216,7 +216,7 @@ def lista_deudas(request: HttpRequest) -> HttpResponse:
     # Calculate summary
     total_deudas = sum(deuda.saldo_actual for deuda in deudas)
     total_pagado = sum(deuda.pago_mensual for deuda in deudas)
-    deudas_activas = sum(1 for deuda in deudas if deuda.activa)
+    deudas_activas = len(deudas)  # All debts are considered active
 
     context: Dict[str, Any] = {
         'deudas': deudas,
@@ -571,9 +571,7 @@ def api_dashboard_summary(request: HttpRequest) -> JsonResponse:
         perfil = PerfilFinanciero.objects.get(usuario=request.user)
 
         # Get financial summary
-        deudas_total = perfil.deudas.filter(
-            activa=True
-        ).aggregate(
+        deudas_total = perfil.deudas.all().aggregate(
             total=Sum('saldo_actual')
         )['total'] or Decimal('0.00')
 

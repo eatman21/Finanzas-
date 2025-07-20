@@ -47,7 +47,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             )
             simulaciones = SimulacionCredito.objects.filter(
                 perfil=perfil
-            ).order_by('-fecha_creacion')[:5]
+            ).order_by('-fecha_simulacion')[:5]
             recomendaciones = Recomendacion.objects.filter(
                 perfil=perfil,
                 activa=True
@@ -144,17 +144,12 @@ def perfil_financiero(request: HttpRequest) -> HttpResponse:
         total=Sum('monto_objetivo')
     )['total'] or Decimal('0.00')
 
-    monto_ahorrado = objetivos.aggregate(
-        total=Sum('monto_ahorrado')
-    )['total'] or Decimal('0.00')
-
     context: Dict[str, Any] = {
         'perfil': perfil,
         'deudas': deudas,
         'objetivos': objetivos,
         'total_deudas': total_deudas,
         'total_objetivos': total_objetivos,
-        'monto_ahorrado': monto_ahorrado,
     }
     return render(request, 'finanzas/perfil_financiero.html', context)
 
@@ -588,12 +583,6 @@ def api_dashboard_summary(request: HttpRequest) -> JsonResponse:
             total=Sum('monto_objetivo')
         )['total'] or Decimal('0.00')
 
-        objetivos_ahorrado = perfil.objetivos.filter(
-            activo=True
-        ).aggregate(
-            total=Sum('monto_ahorrado')
-        )['total'] or Decimal('0.00')
-
         data = {
             'success': True,
             'perfil_exists': True,
@@ -602,7 +591,6 @@ def api_dashboard_summary(request: HttpRequest) -> JsonResponse:
                 'gastos_mensuales': float(perfil.gastos_fijos),
                 'deudas_total': float(deudas_total),
                 'objetivos_total': float(objetivos_total),
-                'objetivos_ahorrado': float(objetivos_ahorrado),
                 'ahorro_disponible': float(
                     perfil.ingreso_mensual - perfil.gastos_fijos
                 ),

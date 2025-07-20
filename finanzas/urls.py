@@ -34,4 +34,35 @@ urlpatterns = [
     path('recomendaciones/', views.lista_recomendaciones,
          name='lista_recomendaciones'),
     path('calculadora/', views.calculadora_moderna, name='calculadora'),
+
+    # API endpoints
+    path('api/dashboard-summary/', views.api_dashboard_summary,
+         name='api_dashboard_summary'),
+
+    # New Financial Models URLs
+    # Accounts
+    path('accounts/', views.account_list, name='account_list'),
+    path('accounts/nueva/', views.account_create, name='account_create'),
+    path('accounts/<int:pk>/', views.account_detail, name='account_detail'),
+    path('accounts/<int:pk>/editar/', views.account_update, name='account_update'),
+    path('accounts/<int:pk>/eliminar/',
+         views.account_delete, name='account_delete'),
+
+    # Transactions
+    path('transactions/', views.transaction_list, name='transaction_list'),
+    path('transactions/nueva/', views.transaction_create,
+         name='transaction_create'),
+    path('transactions/<int:pk>/', views.transaction_detail,
+         name='transaction_detail'),
+    path('transactions/<int:pk>/editar/',
+         views.transaction_update, name='transaction_update'),
+    path('transactions/<int:pk>/eliminar/',
+         views.transaction_delete, name='transaction_delete'),
+
+    # Budgets
+    path('budgets/', views.budget_list, name='budget_list'),
+    path('budgets/<int:pk>/', views.budget_detail, name='budget_detail'),
+
+    # Categories
+    path('categories/', views.category_list, name='category_list'),
 ]

@@ -81,6 +81,16 @@ class Deuda(models.Model):
     fecha_inicio = models.DateField()
     plazo_meses = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['perfil', 'tipo']),
+            models.Index(fields=['fecha_inicio']),
+            models.Index(fields=['-saldo_actual']),
+        ]
+        ordering = ['-saldo_actual']
+        verbose_name = 'Deuda'
+        verbose_name_plural = 'Deudas'
+
     def __str__(self):
         return f"{self.nombre} - ${self.saldo_actual}"
 
@@ -101,11 +111,27 @@ class ObjetivoFinanciero(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['perfil', 'activo']),
+            models.Index(fields=['-fecha_creacion']),
+            models.Index(fields=['plazo_meses']),
+        ]
+        ordering = ['-fecha_creacion']
+        verbose_name = 'Objetivo Financiero'
+        verbose_name_plural = 'Objetivos Financieros'
+
     @property
     def ahorro_mensual_requerido(self):
         if self.plazo_meses > 0:
             return self.monto_objetivo / self.plazo_meses
         return 0
+
+    @property
+    def completado(self):
+        """Check if goal is completed"""
+        # This would need actual progress tracking
+        return False
 
     def __str__(self):
         return f"{self.nombre} - ${self.monto_objetivo}"
@@ -140,6 +166,15 @@ class SimulacionCredito(models.Model):
         help_text="Seguros, notaría, etc."
     )
     fecha_simulacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['perfil', '-fecha_simulacion']),
+            models.Index(fields=['tipo']),
+        ]
+        ordering = ['-fecha_simulacion']
+        verbose_name = 'Simulación de Crédito'
+        verbose_name_plural = 'Simulaciones de Crédito'
 
     @property
     def monto_enganche(self):

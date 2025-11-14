@@ -30,7 +30,23 @@ from .forms import (
 
 @login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
-    """Vista principal del dashboard financiero"""
+    """Vista principal del dashboard financiero - Optimizada"""
+    from django.core.cache import cache
+    from .constants import (
+        DASHBOARD_RECENT_TRANSACTIONS,
+        DASHBOARD_MAX_SIMULATIONS,
+        DASHBOARD_MAX_RECOMMENDATIONS,
+        BUDGET_WARNING_THRESHOLD,
+        CACHE_DASHBOARD
+    )
+
+    # Try cache first
+    cache_key = f'dashboard_{request.user.id}'
+    context = cache.get(cache_key)
+
+    if context:
+        return render(request, 'finanzas/dashboard.html', context)
+
     perfil = None
     deudas = []
     objetivos = []
@@ -38,56 +54,77 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     recomendaciones = []
 
     try:
-        perfil = PerfilFinanciero.objects.get(usuario=request.user)
+        # Optimize: select_related to avoid extra query
+        perfil = PerfilFinanciero.objects.select_related('usuario').get(
+            usuario=request.user
+        )
         if perfil:
-            deudas = Deuda.objects.filter(perfil=perfil)
+            # Optimize: only fetch needed fields
+            deudas = Deuda.objects.filter(perfil=perfil).only(
+                'id', 'tipo', 'nombre', 'saldo_actual', 'pago_mensual', 'tasa_interes'
+            )
             objetivos = ObjetivoFinanciero.objects.filter(
                 perfil=perfil,
                 activo=True
-            )
+            ).only('id', 'tipo', 'nombre', 'monto_objetivo', 'plazo_meses')
+
             simulaciones = SimulacionCredito.objects.filter(
                 perfil=perfil
-            ).order_by('-fecha_simulacion')[:5]
+            ).only(
+                'id', 'tipo', 'nombre', 'valor_propiedad', 'fecha_simulacion'
+            ).order_by('-fecha_simulacion')[:DASHBOARD_MAX_SIMULATIONS]
+
             recomendaciones = Recomendacion.objects.filter(
                 perfil=perfil,
                 activa=True
-            ).order_by('-fecha_creacion')[:3]
+            ).only(
+                'id', 'titulo', 'descripcion', 'prioridad'
+            ).order_by('-prioridad', '-fecha_creacion')[:DASHBOARD_MAX_RECOMMENDATIONS]
     except PerfilFinanciero.DoesNotExist:
-        # It's okay if profile doesn't exist, we'll show empty data
         pass
 
-    # Get account summary if using new models
+    # Optimize account summary
     accounts_summary = {}
     if request.user.is_authenticated:
-        accounts = Account.objects.filter(user=request.user, is_active=True)
+        accounts = Account.objects.filter(
+            user=request.user,
+            is_active=True
+        ).only('id', 'name', 'account_type', 'currency', 'current_balance')
+
         total_balance = accounts.aggregate(
             total=Sum('current_balance')
         )['total'] or Decimal('0.00')
+
         accounts_summary = {
             'accounts': accounts,
             'total_balance': total_balance,
         }
 
-    # Get recent transactions
+    # Optimize transactions with select_related and only
     recent_transactions = []
     if request.user.is_authenticated:
         recent_transactions = Transaction.objects.filter(
             user=request.user,
             is_cancelled=False
-        ).select_related('account', 'category').order_by('-date', '-created_at')[:10]
+        ).select_related('account', 'category').only(
+            'id', 'date', 'description', 'amount', 'transaction_type',
+            'account__name', 'category__name', 'category__icon'
+        ).order_by('-date', '-created_at')[:DASHBOARD_RECENT_TRANSACTIONS]
 
-    # Get budget alerts
+    # Optimize budget alerts
     budget_alerts = []
     if request.user.is_authenticated:
         active_budgets = Budget.objects.filter(
             user=request.user,
             is_active=True
-        )
+        ).only('id', 'name', 'total_amount', 'start_date', 'end_date')
+
         for budget in active_budgets:
-            if budget.spent_percentage > 80:  # Alert if over 80% used
+            spent_pct = budget.spent_percentage
+            if spent_pct > BUDGET_WARNING_THRESHOLD:
                 budget_alerts.append({
                     'budget': budget,
-                    'percentage_used': budget.spent_percentage,
+                    'percentage_used': spent_pct,
                     'remaining': budget.remaining_amount,
                 })
 
@@ -99,8 +136,11 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         'recomendaciones': recomendaciones,
         'accounts_summary': accounts_summary,
         'recent_transactions': recent_transactions,
-        'budget_alerts': budget_alerts[:3],  # Show only top 3 alerts
+        'budget_alerts': budget_alerts[:DASHBOARD_MAX_RECOMMENDATIONS],
     }
+
+    # Cache for 10 minutes
+    cache.set(cache_key, context, CACHE_DASHBOARD)
 
     return render(request, 'finanzas/dashboard.html', context)
 

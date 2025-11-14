@@ -10,7 +10,8 @@ from .models.budget import Budget
 from .serializers import (
     PerfilFinancieroSerializer, DeudaSerializer, ObjetivoFinancieroSerializer,
     SimulacionCreditoSerializer, RecomendacionSerializer,
-    AccountSerializer, TransactionSerializer, CategorySerializer, BudgetSerializer
+    AccountSerializer, TransactionSerializer, CategorySerializer, BudgetSerializer,
+    DashboardSerializer
 )
 
 
@@ -199,3 +200,123 @@ class RecomendacionViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().filter(activa=True)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+# Modern Financial Management ViewSets
+
+class AccountViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing user accounts"""
+    serializer_class = AccountSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Account.objects.filter(user=self.request.user, is_active=True).select_related('currency')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """Get accounts summary"""
+        queryset = self.get_queryset()
+
+        total_balance = sum(account.balance for account in queryset)
+        by_type = {}
+        for account in queryset:
+            if account.account_type not in by_type:
+                by_type[account.account_type] = {
+                    'count': 0,
+                    'total_balance': 0
+                }
+            by_type[account.account_type]['count'] += 1
+            by_type[account.account_type]['total_balance'] += float(account.balance)
+
+        return Response({
+            'total_accounts': queryset.count(),
+            'total_balance': total_balance,
+            'by_type': by_type,
+        })
+
+
+class TransactionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing transactions"""
+    serializer_class = TransactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Transaction.objects.filter(
+            account__user=self.request.user
+        ).select_related('account', 'category').order_by('-date', '-created_at')
+
+    def perform_create(self, serializer):
+        # Validate that the account belongs to the user
+        account = serializer.validated_data.get('account')
+        if account.user != self.request.user:
+            raise permissions.PermissionDenied("You don't have permission to access this account")
+        serializer.save()
+
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """Get transactions summary"""
+        queryset = self.get_queryset()
+
+        # Get query parameters for filtering
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        if start_date:
+            queryset = queryset.filter(date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(date__lte=end_date)
+
+        total_income = queryset.filter(transaction_type='income').aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+
+        total_expense = queryset.filter(transaction_type='expense').aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+
+        return Response({
+            'total_income': total_income,
+            'total_expense': total_expense,
+            'net_balance': total_income - total_expense,
+            'total_transactions': queryset.count(),
+        })
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing transaction categories"""
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Category.objects.filter(user=self.request.user, is_active=True).prefetch_related('subcategories')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class BudgetViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing budgets"""
+    serializer_class = BudgetSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Budget.objects.filter(user=self.request.user).prefetch_related('categories')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['get'])
+    def progress(self, request, pk=None):
+        """Get budget progress details"""
+        budget = self.get_object()
+
+        return Response({
+            'budget': BudgetSerializer(budget).data,
+            'spent_amount': budget.spent_amount,
+            'remaining_amount': budget.remaining_amount,
+            'spent_percentage': budget.spent_percentage,
+            'is_over_budget': budget.spent_percentage > 100,
+        })

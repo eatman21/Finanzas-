@@ -319,7 +319,7 @@ def lista_objetivos(request: HttpRequest) -> HttpResponse:
 
     try:
         perfil = PerfilFinanciero.objects.get(usuario=request.user)
-        objetivos = perfil.objetivos.all().order_by('-activo', 'fecha_limite')
+        objetivos = perfil.objetivos.all().order_by('-activo', 'fecha_creacion')
     except PerfilFinanciero.DoesNotExist:
         messages.info(
             request,
@@ -328,7 +328,8 @@ def lista_objetivos(request: HttpRequest) -> HttpResponse:
 
     # Calculate progress
     objetivos_activos = [obj for obj in objetivos if obj.activo]
-    objetivos_completados = [obj for obj in objetivos if obj.completado]
+    # Inactive objectives are considered completed
+    objetivos_completados = [obj for obj in objetivos if not obj.activo]
 
     context: Dict[str, Any] = {
         'objetivos': objetivos,
@@ -503,12 +504,24 @@ def detalle_simulacion(request: HttpRequest, pk: int) -> HttpResponse:
         tabla_amortizacion = simulacion.tabla_amortizacion()[
             :12]  # First 12 months
 
+    # Calculate difference values for template
+    capacidad_endeudamiento = simulacion.perfil.capacidad_endeudamiento
+    pago_mensual = simulacion.pago_mensual
+
+    if simulacion.es_viable:
+        # If viable, show how much is left for other expenses
+        diferencia = capacidad_endeudamiento - pago_mensual
+    else:
+        # If not viable, show how much it exceeds capacity
+        diferencia = pago_mensual - capacidad_endeudamiento
+
     context: Dict[str, Any] = {
         'simulacion': simulacion,
         'tabla_amortizacion': tabla_amortizacion,
         'cuota_mensual': simulacion.pago_mensual,
         'total_intereses': simulacion.intereses_totales,
         'total_pagar': simulacion.pago_total,
+        'diferencia': diferencia,
     }
     return render(request, 'finanzas/detalle_simulacion.html', context)
 

@@ -134,12 +134,12 @@
                     <label class="form-label">Diferencia:</label>
                     {% if simulacion.es_viable %}
                         <div class="fw-bold text-success">
-                            ${{ simulacion.perfil.capacidad_endeudamiento|add:"0"|sub:simulacion.pago_mensual|floatformat:2 }}
+                            ${{ diferencia|floatformat:2 }}
                         </div>
                         <small class="text-success">Disponible para otros gastos</small>
                     {% else %}
                         <div class="fw-bold text-danger">
-                            ${{ simulacion.pago_mensual|sub:simulacion.perfil.capacidad_endeudamiento|floatformat:2 }}
+                            ${{ diferencia|floatformat:2 }}
                         </div>
                         <small class="text-danger">Excede tu capacidad</small>
                     {% endif %}

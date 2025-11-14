@@ -87,42 +87,101 @@ class Account(models.Model):
         return f"{self.name} ({self.get_account_type_display()})"
 
     def update_balance(self):
-        """Recalculate current balance based on transactions"""
+        """Recalculate current balance based on transactions - Thread-safe"""
+        from django.db import transaction as db_transaction
+        from django.core.cache import cache
         from .transaction import Transaction
 
-        transactions = self.transactions.filter(is_cancelled=False)
-        income = transactions.filter(
-            transaction_type=Transaction.TransactionType.INCOME
-        ).aggregate(
-            total=models.Sum('amount')
-        )['total'] or Decimal('0.00')
+        with db_transaction.atomic():
+            # Lock the account row to prevent race conditions
+            account = Account.objects.select_for_update().get(pk=self.pk)
 
-        expense = transactions.filter(
-            transaction_type=Transaction.TransactionType.EXPENSE
-        ).aggregate(
-            total=models.Sum('amount')
-        )['total'] or Decimal('0.00')
+            transactions = account.transactions.filter(is_cancelled=False)
 
-        transfers_out = transactions.filter(
-            transaction_type=Transaction.TransactionType.TRANSFER
-        ).aggregate(
-            total=models.Sum('amount')
-        )['total'] or Decimal('0.00')
+            # Use single query with conditional aggregation
+            aggregates = transactions.aggregate(
+                income=models.Sum(
+                    'amount',
+                    filter=models.Q(transaction_type=Transaction.TransactionType.INCOME)
+                ),
+                expense=models.Sum(
+                    'amount',
+                    filter=models.Q(transaction_type=Transaction.TransactionType.EXPENSE)
+                ),
+                transfers_out=models.Sum(
+                    'amount',
+                    filter=models.Q(transaction_type=Transaction.TransactionType.TRANSFER)
+                ),
+            )
 
-        transfers_in = self.incoming_transfers.filter(
-            is_cancelled=False
-        ).aggregate(
-            total=models.Sum('amount')
-        )['total'] or Decimal('0.00')
+            income = aggregates['income'] or Decimal('0.00')
+            expense = aggregates['expense'] or Decimal('0.00')
+            transfers_out = aggregates['transfers_out'] or Decimal('0.00')
 
-        self.current_balance = (
-            self.initial_balance +
-            income -
-            expense -
-            transfers_out +
-            transfers_in
-        )
-        self.save(update_fields=['current_balance'])
+            transfers_in = account.incoming_transfers.filter(
+                is_cancelled=False
+            ).aggregate(
+                total=models.Sum('amount')
+            )['total'] or Decimal('0.00')
+
+            account.current_balance = (
+                account.initial_balance +
+                income -
+                expense -
+                transfers_out +
+                transfers_in
+            )
+            account.save(update_fields=['current_balance'])
+
+            # Invalidate cache
+            cache.delete(f'account_summary_{account.id}')
+
+    def get_summary(self):
+        """Get cached summary of account transactions"""
+        from django.core.cache import cache
+        from django.db.models import Q, Sum
+        from .transaction import Transaction
+
+        cache_key = f'account_summary_{self.id}'
+        summary = cache.get(cache_key)
+
+        if summary is None:
+            transactions = self.transactions.filter(is_cancelled=False)
+
+            # Single optimized query with conditional aggregation
+            aggregates = transactions.aggregate(
+                total_income=Sum(
+                    'amount',
+                    filter=Q(transaction_type=Transaction.TransactionType.INCOME)
+                ),
+                total_expenses=Sum(
+                    'amount',
+                    filter=Q(transaction_type=Transaction.TransactionType.EXPENSE)
+                ),
+                total_transfers_out=Sum(
+                    'amount',
+                    filter=Q(transaction_type=Transaction.TransactionType.TRANSFER)
+                ),
+            )
+
+            transfers_in = self.incoming_transfers.filter(
+                is_cancelled=False
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+
+            summary = {
+                'total_income': aggregates['total_income'] or Decimal('0.00'),
+                'total_expenses': aggregates['total_expenses'] or Decimal('0.00'),
+                'total_transfers_out': aggregates['total_transfers_out'] or Decimal('0.00'),
+                'total_transfers_in': transfers_in,
+                'net_flow': (aggregates['total_income'] or Decimal('0.00')) -
+                           (aggregates['total_expenses'] or Decimal('0.00')),
+            }
+
+            # Cache for 10 minutes
+            from finanzas.constants import CACHE_ACCOUNT_SUMMARY
+            cache.set(cache_key, summary, CACHE_ACCOUNT_SUMMARY)
+
+        return summary
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -130,27 +189,15 @@ class Account(models.Model):
 
     @property
     def total_income(self):
-        """Get total income for this account"""
-        from .transaction import Transaction
-        return self.transactions.filter(
-            transaction_type=Transaction.TransactionType.INCOME,
-            is_cancelled=False
-        ).aggregate(
-            total=models.Sum('amount')
-        )['total'] or Decimal('0.00')
+        """Get total income for this account - Cached"""
+        return self.get_summary()['total_income']
 
     @property
     def total_expenses(self):
-        """Get total expenses for this account"""
-        from .transaction import Transaction
-        return self.transactions.filter(
-            transaction_type=Transaction.TransactionType.EXPENSE,
-            is_cancelled=False
-        ).aggregate(
-            total=models.Sum('amount')
-        )['total'] or Decimal('0.00')
+        """Get total expenses for this account - Cached"""
+        return self.get_summary()['total_expenses']
 
     @property
     def net_flow(self):
-        """Get net cash flow (income - expenses)"""
-        return self.total_income - self.total_expenses
+        """Get net cash flow (income - expenses) - Cached"""
+        return self.get_summary()['net_flow']

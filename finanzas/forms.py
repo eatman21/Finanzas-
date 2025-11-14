@@ -15,13 +15,61 @@ class PerfilFinancieroForm(forms.ModelForm):
             'ahorro_mensual', 'ahorro_actual', 'score_crediticio'
         ]
         widgets = {
-            'ingreso_mensual': forms.NumberInput(attrs={'class': 'form-control'}),
-            'otros_ingresos': forms.NumberInput(attrs={'class': 'form-control'}),
-            'gastos_fijos': forms.NumberInput(attrs={'class': 'form-control'}),
-            'ahorro_mensual': forms.NumberInput(attrs={'class': 'form-control'}),
-            'ahorro_actual': forms.NumberInput(attrs={'class': 'form-control'}),
-            'score_crediticio': forms.NumberInput(attrs={'class': 'form-control'}),
+            'ingreso_mensual': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0.01',
+                'step': '0.01'
+            }),
+            'otros_ingresos': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '0.01'
+            }),
+            'gastos_fijos': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '0.01'
+            }),
+            'ahorro_mensual': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '0.01'
+            }),
+            'ahorro_actual': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '0.01'
+            }),
+            'score_crediticio': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '300',
+                'max': '850'
+            }),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        ingreso = cleaned_data.get('ingreso_mensual', Decimal('0'))
+        otros_ingresos = cleaned_data.get('otros_ingresos', Decimal('0'))
+        gastos = cleaned_data.get('gastos_fijos', Decimal('0'))
+        ahorro = cleaned_data.get('ahorro_mensual', Decimal('0'))
+
+        ingreso_total = ingreso + otros_ingresos
+
+        # Validate gastos don't exceed ingresos
+        if gastos > ingreso_total:
+            raise forms.ValidationError(
+                'Los gastos fijos no pueden ser mayores al ingreso total.'
+            )
+
+        # Validate ahorro + gastos don't exceed ingresos
+        if (gastos + ahorro) > ingreso_total:
+            raise forms.ValidationError(
+                'La suma de gastos fijos y ahorro mensual no puede exceder el ingreso total. '
+                f'Ingreso disponible: ${ingreso_total - gastos:.2f}'
+            )
+
+        return cleaned_data
 
 
 class DeudaForm(forms.ModelForm):
@@ -33,13 +81,59 @@ class DeudaForm(forms.ModelForm):
         ]
         widgets = {
             'tipo': forms.Select(attrs={'class': 'form-control'}),
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'saldo_actual': forms.NumberInput(attrs={'class': 'form-control'}),
-            'pago_mensual': forms.NumberInput(attrs={'class': 'form-control'}),
-            'tasa_interes': forms.NumberInput(attrs={'class': 'form-control'}),
-            'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'plazo_meses': forms.NumberInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'maxlength': '100'
+            }),
+            'saldo_actual': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '0.01'
+            }),
+            'pago_mensual': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '0.01'
+            }),
+            'tasa_interes': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'max': '100',
+                'step': '0.01'
+            }),
+            'fecha_inicio': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'plazo_meses': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'max': '600'
+            }),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        saldo = cleaned_data.get('saldo_actual')
+        pago = cleaned_data.get('pago_mensual')
+        plazo = cleaned_data.get('plazo_meses')
+
+        # Validate pago mensual is reasonable for saldo
+        if saldo and pago and pago > saldo:
+            raise forms.ValidationError(
+                'El pago mensual no puede ser mayor al saldo actual de la deuda.'
+            )
+
+        # Warn if plazo * pago is much less than saldo (suspicious)
+        if saldo and pago and plazo:
+            total_pagos = pago * plazo
+            if total_pagos < (saldo * Decimal('0.5')):  # Less than 50% of debt
+                self.add_error('plazo_meses',
+                    f'Advertencia: Con {plazo} meses de ${pago:.2f}, solo pagarías ${total_pagos:.2f} '
+                    f'de los ${saldo:.2f} adeudados. Verifica los datos.'
+                )
+
+        return cleaned_data
 
 
 class ObjetivoFinancieroForm(forms.ModelForm):
